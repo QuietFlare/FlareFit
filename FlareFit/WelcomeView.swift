@@ -43,12 +43,12 @@ struct WelcomeView: View {
                                subtitle: "Reps, rounds, rest and switch timers — hands off.")
                     featureRow(icon: "waveform",
                                title: "A coach in your ear",
-                               subtitle: "Voice cues for every phase, ticks for every countdown.")
+                               subtitle: "Voice cues in English or German, ticks for every countdown.")
                     featureRow(icon: "music.note",
                                title: "Music & Siri built in",
-                               subtitle: "Your playlist starts with you. \"Hey Siri, start my workout.\"")
+                               subtitle: "Your music plays underneath. Say “Hey Siri, start my workout in FlareFit.”")
                 }
-                .padding(.horizontal, 32)
+                .padding(.horizontal, 28)
 
                 Spacer()
 
@@ -56,7 +56,7 @@ struct WelcomeView: View {
                     .font(.caption2)
                     .foregroundStyle(.white.opacity(0.7))
                     .multilineTextAlignment(.center)
-                    .padding(.horizontal, 36)
+                    .padding(.horizontal, 28)
                     .padding(.bottom, 14)
 
                 Button(action: onGetStarted) {

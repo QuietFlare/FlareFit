@@ -5,6 +5,7 @@
 
 import SwiftUI
 import AVFoundation
+import AppIntents
 
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
@@ -20,6 +21,7 @@ struct SettingsView: View {
         NavigationStack {
             Form {
                 coachVoiceSection
+                siriSection
                 if FeatureFlags.aiFeaturesEnabled {
                     elevenLabsSection
                     apiKeySection
@@ -65,6 +67,19 @@ struct SettingsView: View {
             Text("Coach Voice")
         } footer: {
             Text("Automatic follows your device language (English or German).")
+        }
+    }
+
+    private var siriSection: some View {
+        Section {
+            // Shows the actual, working Siri phrase (with the app name) and lets
+            // the user add it — the reliable way to teach the command.
+            SiriTipView(intent: StartWorkoutIntent())
+            ShortcutsLink()
+        } header: {
+            Text("Siri & Shortcuts")
+        } footer: {
+            Text("Start hands-free — say a phrase like “Hey Siri, start my workout in FlareFit.” Include “in FlareFit” so Siri knows it's this app. Tap above to see every shortcut, or add your own phrase.")
         }
     }
 
