@@ -21,7 +21,7 @@ jobs:
   testflight:
     runs-on: macos-15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Preflight — confirm secrets are set
         env:
