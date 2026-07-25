@@ -65,11 +65,11 @@ struct AboutView: View {
                 }
 
                 Section {
-                    Link(destination: URL(string: "https://www.quietflare.net")!) {
-                        Label("quietflare.net", systemImage: "globe")
+                    Link(destination: URL(string: "https://www.quietflare.net/flarefit/")!) {
+                        Label("quietflare.net/flarefit", systemImage: "globe")
                     }
                 } footer: {
-                    Text("Made with 🔥 by Quietflare")
+                    Text("Made with 🔥 by QuietFlare")
                         .frame(maxWidth: .infinity)
                         .multilineTextAlignment(.center)
                         .padding(.top, 8)
@@ -90,10 +90,20 @@ struct LegalTextView: View {
     let title: String
     let text: String
 
+    // Parse inline markdown (so [label](url) links are tappable) while keeping
+    // the original line breaks — .inlineOnlyPreservingWhitespace does both.
+    private var attributed: AttributedString {
+        (try? AttributedString(
+            markdown: text,
+            options: .init(interpretedSyntax: .inlineOnlyPreservingWhitespace)
+        )) ?? AttributedString(text)
+    }
+
     var body: some View {
         ScrollView {
-            Text(text)
+            Text(attributed)
                 .font(.callout)
+                .tint(Color(red: 0.85, green: 0.16, blue: 0.05))  // ember link color
                 .padding()
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
@@ -116,11 +126,11 @@ enum LegalText {
 
     4. Your content. Workout plans you create are stored only on your device. You own them. Deleting the app deletes them.
 
-    5. No warranty. The app is provided "as is", without warranty of any kind. To the maximum extent permitted by law, Quietflare disclaims all warranties and shall not be liable for any damages arising from your use of the app, including injury, loss of data, or interrupted workouts.
+    5. No warranty. The app is provided "as is", without warranty of any kind. To the maximum extent permitted by law, QuietFlare disclaims all warranties and shall not be liable for any damages arising from your use of the app, including injury, loss of data, or interrupted workouts.
 
     6. Changes. These terms may be updated with app updates. Continued use after an update constitutes acceptance.
 
-    7. Contact. Questions? Visit quietflare.net.
+    7. Contact. Questions? Visit [quietflare.net/flarefit](https://www.quietflare.net/flarefit/).
     """
 
     static let disclaimer = """
@@ -154,7 +164,7 @@ enum LegalText {
 
     • Siri. Siri commands are processed by Apple according to Apple's own privacy policy. FlareFit only receives the resulting action (e.g. "start workout").
 
-    Questions? Visit quietflare.net.
+    Questions? Visit [quietflare.net/flarefit](https://www.quietflare.net/flarefit/).
     """
 }
 
