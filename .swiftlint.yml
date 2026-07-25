@@ -1,0 +1,48 @@
+# SwiftLint config for FlareFit.
+# Start lenient (introducing lint to an existing codebase); tighten over time.
+
+disabled_rules:
+  - trailing_whitespace   # noisy; formatter's job
+  - todo                  # TODOs are tracked deliberately
+  - trailing_comma        # trailing commas in multiline literals are good style (clean diffs)
+
+opt_in_rules:
+  - closure_spacing
+  - empty_count
+  - first_where
+  - contains_over_first_not_nil
+  - redundant_nil_coalescing
+  - operator_usage_whitespace
+
+excluded:
+  - DerivedData
+  - .build
+  - tools            # helper scripts, not shipped
+  - FlareFit/BundledVoice
+
+line_length:
+  warning: 140
+  error: 300          # hard cap only; long legal text in AboutView is unavoidable
+  ignores_comments: true
+  ignores_urls: true
+
+cyclomatic_complexity:
+  warning: 12         # buildSteps is inherently branchy (and thoroughly unit-tested)
+
+file_length:
+  warning: 600
+  error: 900
+
+type_body_length:
+  warning: 400
+  error: 600
+
+function_body_length:
+  warning: 80
+  error: 140
+
+identifier_name:
+  min_length: 2
+  excluded: [id, i, x, y, v, w, h, g, p, s]
+
+reporter: "xcode"

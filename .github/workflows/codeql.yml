@@ -1,0 +1,55 @@
+name: CodeQL (SAST, artifact-only)
+
+# Static analysis of the Swift code. Uploading results to the Security tab needs
+# GitHub Advanced Security, which isn't available on a personal PRIVATE repo — so
+# instead we produce the SARIF as a downloadable workflow ARTIFACT and review it
+# by hand. Manual-dispatch only (a CodeQL build is macOS + expensive); run it
+# before a release. When the repo goes PUBLIC, code scanning is free: re-add
+# `security-events: write`, delete `upload: false` + the artifact step, and add
+# push/PR/schedule triggers to publish straight to the Security tab.
+on:
+  workflow_dispatch:
+
+jobs:
+  analyze:
+    runs-on: macos-15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          # Pin to Xcode 16.x (iOS 18 simulators pre-installed); latest-stable
+          # now resolves to Xcode 26.x, whose iOS runtime isn't on the image.
+          xcode-version: '16'
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: swift
+
+      - name: Build for analysis
+        run: |
+          set -o pipefail
+          xcodebuild build \
+            -project FlareFit.xcodeproj \
+            -scheme FlareFit \
+            -sdk iphonesimulator \
+            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Perform CodeQL analysis (no upload)
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:swift"
+          upload: false
+          output: sarif-results
+
+      - name: Upload SARIF as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: codeql-swift-sarif
+          path: sarif-results
+          if-no-files-found: warn

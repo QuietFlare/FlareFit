@@ -1,0 +1,31 @@
+# Xcode / Swift build artifacts
+build/
+DerivedData/
+*.xcarchive
+*.ipa
+*.dSYM.zip
+*.dSYM
+*.hmap
+*.xcresult
+
+# Xcode user state (per-developer, not shared)
+xcuserdata/
+*.xcuserstate
+
+# Swift Package Manager
+.build/
+.swiftpm/
+
+# Secrets & signing — never commit these
+*.p8
+*.p12
+*.mobileprovision
+*.cer
+AuthKey_*.p8
+
+# macOS
+.DS_Store
+
+# Private maintainer notes — never commit (kept outside the repo too)
+*.private.md
+NOTES.private.md

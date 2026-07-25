@@ -1,0 +1,46 @@
+name: AI Review
+
+# Automated PR code review using PR-Agent (open source, model-agnostic) driving
+# Google Gemini Flash — free tier, fast, strong at code. Runs on a free Ubuntu
+# runner. Model-agnostic: to switch providers later, change `config.model` + the
+# provider key env var (LiteLLM names) — e.g. groq/…, deepseek/…, openai/….
+#
+# Requires ONE repo secret:
+#   GEMINI_API_KEY  — free key from Google AI Studio (aistudio.google.com/apikey)
+#
+# ⚠️ VERIFY against PR-Agent's current README before relying on it — the action
+# ref (qodo-ai/pr-agent), the env-var keys, and the model string move over time:
+#   https://qodo-merge-docs.qodo.ai/installation/github/  (GitHub Action section)
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  pull-requests: write
+  contents: read
+  issues: write
+
+jobs:
+  review:
+    # Skip bot-authored PRs (e.g. Dependabot) — no value reviewing a version bump.
+    if: github.event.pull_request.user.type != 'Bot'
+    runs-on: ubuntu-latest
+    steps:
+      - name: PR-Agent review (Gemini Flash)
+        uses: qodo-ai/pr-agent@main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # --- model selection (LiteLLM) ---
+          config.model: "gemini/gemini-2.0-flash"
+          config.fallback_models: '["gemini/gemini-2.0-flash"]'
+          google_ai_studio.gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
+          # --- what runs automatically on a PR ---
+          github_action_config.auto_review: "true"
+          github_action_config.auto_describe: "false"
+          github_action_config.auto_improve: "true"
+          # Focus the review; this is an iOS SwiftUI app (workout timer).
+          pr_reviewer.extra_instructions: >-
+            Focus on correctness bugs, Swift concurrency / @MainActor issues,
+            retain cycles, SwiftUI state pitfalls, and security (API keys live in
+            the Keychain and are sent only in request headers over HTTPS; the app
+            is on-device with no accounts or tracking). Be brief where fine.

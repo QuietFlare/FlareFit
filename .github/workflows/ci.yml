@@ -1,0 +1,63 @@
+name: CI
+
+# SwiftLint + build + test. Runs on PRs and on-demand only — NOT on every push
+# to main, because macOS runners bill at 10x and building on every direct push
+# burns the monthly free-minute allowance fast. PRs gate changes before merge;
+# use "Run workflow" for a manual check on main.
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          # Pin to Xcode 16.x: it has the iOS 18 simulators pre-installed and
+          # matches the app's iOS 18.2 target. (latest-stable now resolves to
+          # Xcode 26.x, whose iOS simulator runtime isn't on the runner image —
+          # so `-destination name=iPhone 16` finds no device.)
+          xcode-version: '16'
+
+      - name: Versions
+        run: |
+          xcodebuild -version
+          xcrun simctl list runtimes | grep iOS || true
+
+      - name: SwiftLint
+        # Tree is clean locally (0 errors, ~7 benign warnings). continue-on-error
+        # guards against SwiftLint version drift on the runner; once a CI run is
+        # confirmed green, remove it to enforce (errors will then block).
+        continue-on-error: true
+        run: |
+          brew install swiftlint
+          swiftlint lint --reporter github-actions-logging
+
+      - name: Build & test (simulator, no signing)
+        run: |
+          set -o pipefail
+          xcodebuild test \
+            -project FlareFit.xcodeproj \
+            -scheme FlareFit \
+            -sdk iphonesimulator \
+            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            -only-testing:FlareFitTests \
+            -resultBundlePath TestResults.xcresult \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: TestResults.xcresult
+          if-no-files-found: ignore
