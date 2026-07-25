@@ -29,9 +29,13 @@ jobs:
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
           ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
         run: |
-          : "${ASC_KEY_ID:?Missing secret ASC_KEY_ID — see this workflow's header}"
-          : "${ASC_ISSUER_ID:?Missing secret ASC_ISSUER_ID}"
-          : "${ASC_KEY_P8:?Missing secret ASC_KEY_P8}"
+          for name in ASC_KEY_ID ASC_ISSUER_ID ASC_KEY_P8; do
+            if [ -z "${!name}" ]; then
+              echo "Missing required secret: $name (see this workflow header)"
+              exit 1
+            fi
+          done
+          echo "All three App Store Connect secrets are present."
 
       - name: Select Xcode
         uses: maxim-lobanov/setup-xcode@v1
