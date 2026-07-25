@@ -23,12 +23,12 @@ struct FlareFitApp: App {
         // without UI interaction. Debug builds only.
         if ProcessInfo.processInfo.arguments.contains("-autostartWorkout") {
             let plan = WorkoutPlan(
-                name: "Debug",
+                name: "Full Body",
                 repetitions: 1,
-                switchSeconds: 3,
+                switchSeconds: 10,
                 exercises: [
-                    Exercise(name: "Alpha", repetitions: 2, workSeconds: 5, restSeconds: 3),
-                    Exercise(name: "Beta", repetitions: 1, workSeconds: 5, restSeconds: 0),
+                    Exercise(name: "Jumping Jacks", repetitions: 2, workSeconds: 40, restSeconds: 15),
+                    Exercise(name: "Squats", repetitions: 3, workSeconds: 45, restSeconds: 20),
                 ]
             )
             Task { @MainActor in
