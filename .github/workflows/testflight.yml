@@ -36,6 +36,10 @@ jobs:
       - name: Select Xcode
         uses: maxim-lobanov/setup-xcode@v1
         with:
+          # Release archive builds for device (no simulator needed), so use the
+          # latest Xcode — Apple wants submissions built with a current toolchain.
+          # (Tests in ci.yml stay on Xcode 16 only because 26.x lacks an iOS sim
+          # runtime on the runner — a tooling constraint, not a build one.)
           xcode-version: latest-stable
 
       - name: Install App Store Connect API key
