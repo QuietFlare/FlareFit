@@ -1,0 +1,31 @@
+name: Release
+
+# Ship to TestFlight via the shared pipeline (github.com/QuietFlare/ci-workflows).
+# ONLY a `v*` tag or a manual dispatch triggers this — never a branch push.
+#
+#   git tag v1.0.0 && git push --tags
+#
+# Unlike the old testflight.yml, the pipeline re-runs the unit tests on the
+# exact commit being shipped before archiving. GATED on three repo secrets
+# from an App Store Connect API key (needs the paid developer account):
+#   ASC_KEY_ID / ASC_ISSUER_ID / ASC_KEY_P8
+# Export options live at .github/ExportOptions.plist (the pipeline default).
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    uses: QuietFlare/ci-workflows/.github/workflows/release-pipeline.yml@v1
+    with:
+      project: FlareFit.xcodeproj
+      scheme: FlareFit
+      only-testing: FlareFitTests
+    secrets:
+      asc-key-id: ${{ secrets.ASC_KEY_ID }}
+      asc-issuer-id: ${{ secrets.ASC_ISSUER_ID }}
+      asc-key-p8: ${{ secrets.ASC_KEY_P8 }}

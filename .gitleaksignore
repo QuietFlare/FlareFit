@@ -1,0 +1,9 @@
+# Triaged gitleaks false positives (fingerprint = commit:file:rule:line).
+# Only add a line here after confirming the finding is NOT a real credential.
+
+# UserDefaults storage-key name ("flarefit.plans.v1") — an identifier, not a secret.
+ffc5bd9c7f7f118e1662f426fd90a95624388dd3:FlareFit/WorkoutStore.swift:generic-api-key:11
+
+# Usage-hint string with the literal placeholder "sk_..." — the real key is
+# only ever read from the ELEVENLABS_API_KEY environment variable.
+ffc5bd9c7f7f118e1662f426fd90a95624388dd3:tools/make_clips.py:generic-api-key:158
