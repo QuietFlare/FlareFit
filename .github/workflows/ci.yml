@@ -1,9 +1,11 @@
 name: CI
 
-# SwiftLint + build + test. Runs on PRs and on-demand only — NOT on every push
-# to main, because macOS runners bill at 10x and building on every direct push
-# burns the monthly free-minute allowance fast. PRs gate changes before merge;
-# use "Run workflow" for a manual check on main.
+# PR gate via the shared pipeline (github.com/QuietFlare/ci-workflows):
+# SwiftLint + build + simulator tests + AI review, one thin caller.
+#
+# PRs + on-demand only — NOT every push to main: macOS runners bill at 10x on
+# a private repo. The AI review needs the GEMINI_API_KEY repo secret and skips
+# automatically on workflow_dispatch runs (no PR context).
 on:
   pull_request:
     branches: [main]
@@ -13,51 +15,24 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+  pull-requests: write   # AI review comments
+  issues: write          # AI review comments
+
 jobs:
-  build-test:
-    runs-on: macos-15
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Select Xcode
-        uses: maxim-lobanov/setup-xcode@v1
-        with:
-          # Pin to Xcode 16.x: it has the iOS 18 simulators pre-installed and
-          # matches the app's iOS 18.2 target. (latest-stable now resolves to
-          # Xcode 26.x, whose iOS simulator runtime isn't on the runner image —
-          # so `-destination name=iPhone 16` finds no device.)
-          xcode-version: '16'
-
-      - name: Versions
-        run: |
-          xcodebuild -version
-          xcrun simctl list runtimes | grep iOS || true
-
-      - name: SwiftLint
-        # Tree is clean locally (0 errors, ~7 benign warnings). continue-on-error
-        # guards against SwiftLint version drift on the runner; once a CI run is
-        # confirmed green, remove it to enforce (errors will then block).
-        continue-on-error: true
-        run: |
-          brew install swiftlint
-          swiftlint lint --reporter github-actions-logging
-
-      - name: Build & test (simulator, no signing)
-        run: |
-          set -o pipefail
-          xcodebuild test \
-            -project FlareFit.xcodeproj \
-            -scheme FlareFit \
-            -sdk iphonesimulator \
-            -destination 'platform=iOS Simulator,name=iPhone 16' \
-            -only-testing:FlareFitTests \
-            -resultBundlePath TestResults.xcresult \
-            CODE_SIGNING_ALLOWED=NO
-
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results
-          path: TestResults.xcresult
-          if-no-files-found: ignore
+  pr:
+    uses: QuietFlare/ci-workflows/.github/workflows/pr-pipeline.yml@v1
+    with:
+      project: FlareFit.xcodeproj
+      scheme: FlareFit
+      only-testing: FlareFitTests
+      swiftlint: true
+      ai-review: true
+      review-instructions: >-
+        Focus on correctness bugs, Swift concurrency / @MainActor issues,
+        retain cycles, SwiftUI state pitfalls, and security (API keys live in
+        the Keychain and are sent only in request headers over HTTPS; the app
+        is on-device with no accounts or tracking). Be brief where fine.
+    secrets:
+      gemini-api-key: ${{ secrets.GEMINI_API_KEY }}

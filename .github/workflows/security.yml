@@ -1,0 +1,34 @@
+name: Security
+
+# Security & compliance via the shared pipeline (github.com/QuietFlare/ci-workflows).
+#
+# Per-PR (seconds-cheap, free Ubuntu): gitleaks full-history secret scan +
+# App Store compliance preflight (privacy manifest, encryption declaration,
+# no committed signing material).
+#
+# Dependency review is OFF: it needs GitHub Advanced Security on a private
+# repo (Dependabot still covers vulnerable-dependency alerts). Flip it on if
+# the repo ever goes public.
+#
+# CodeQL runs only on manual dispatch (macOS = 10x billing) and lands as a
+# SARIF artifact instead of the Security tab — GHAS again. Run it before a
+# release.
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write   # harmless while CodeQL is artifact-only; needed if upload is ever enabled
+
+jobs:
+  security:
+    uses: QuietFlare/ci-workflows/.github/workflows/security-pipeline.yml@v1
+    with:
+      dependency-review: false
+      info-plist: Support/Info.plist
+      codeql: ${{ github.event_name == 'workflow_dispatch' }}
+      codeql-upload: false
+      project: FlareFit.xcodeproj
+      scheme: FlareFit
