@@ -69,7 +69,7 @@ struct AboutView: View {
                         Label("quietflare.net/flarefit", systemImage: "globe")
                     }
                 } footer: {
-                    Text("Made with 🔥 by QuietFlare")
+                    Text("Made by QuietFlare")
                         .frame(maxWidth: .infinity)
                         .multilineTextAlignment(.center)
                         .padding(.top, 8)

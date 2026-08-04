@@ -80,8 +80,11 @@ WorkoutPhaseSchedule copy, both entitlements' app-group keys, pbxproj wiring) �
   label drift made it grab any voice). rm-first still REQUIRED when regenerating (script skips existing).
 - ✅ Privacy manifest: FlareFit/PrivacyInfo.xcprivacy — NSPrivacyTracking=false, no collected data,
   UserDefaults required-reason CA92.1. (Widget target uses no required-reason APIs → none needed.)
-- Background audio: BackgroundAudioKeeper uses UIBackgroundModes=audio to keep coaching + music alive
-  when backgrounded. (Review considerations kept in the maintainer's private notes, outside this repo.)
+- Foreground-only audio (v1.0.3): REMOVED UIBackgroundModes=audio after an App Review 2.5.4 rejection —
+  the near-silent keep-alive loop is exactly what 2.5.4 prohibits, and locked-screen coaching never
+  worked on-device anyway. BackgroundAudioKeeper now only configures the FOREGROUND audio session (no
+  silent loop); WorkoutCoordinator sets `isIdleTimerDisabled` so the screen stays awake during a
+  workout. Coach + music play in the foreground; do NOT re-add the audio background mode.
 - App Store Connect (at submission): privacy nutrition label = "Data Not Collected"; category
   Health & Fitness; age rating; screenshots; description. Export compliance already declared
   (ITSAppUsesNonExemptEncryption=false). No tracking/IDFA, no accounts → no ATT / Sign-in-with-Apple.
