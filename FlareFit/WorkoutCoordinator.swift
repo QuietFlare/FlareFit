@@ -8,6 +8,7 @@
 
 import Foundation
 import SwiftUI
+import UIKit
 
 @MainActor
 final class WorkoutCoordinator: ObservableObject {
@@ -23,7 +24,8 @@ final class WorkoutCoordinator: ObservableObject {
 
     func startWorkout(plan: WorkoutPlan) {
         endWorkout()  // logs any session already in progress
-        BackgroundAudioKeeper.shared.start()  // survive screen lock / backgrounding
+        BackgroundAudioKeeper.shared.start()   // configure the audio session for coach + music
+        UIApplication.shared.isIdleTimerDisabled = true  // keep the screen awake during the workout
         if FeatureFlags.liveActivityEnabled {
             LiveActivityManager.shared.start(planName: plan.name)
         }
@@ -53,6 +55,7 @@ final class WorkoutCoordinator: ObservableObject {
         activeEngine?.end()
         activeEngine = nil
         BackgroundAudioKeeper.shared.stop()
+        UIApplication.shared.isIdleTimerDisabled = false  // let the screen sleep normally again
         LiveActivityManager.shared.end()
     }
 

@@ -65,19 +65,20 @@ enum ToneGenerator {
     }
 }
 
-/// Keeps the audio session alive for the duration of a workout by looping
-/// silence. Music from other apps keeps playing at full volume (.mixWithOthers);
-/// the coach temporarily ducks it only while speaking.
+/// Configures the audio session for the duration of a workout so the coach and
+/// the user's music play smoothly in the FOREGROUND: .mixWithOthers keeps music
+/// at full volume, and the coach ducks it only while speaking. FlareFit is a
+/// foreground workout timer — the screen is kept awake during a workout (see
+/// WorkoutCoordinator) — so it declares NO background audio mode.
 final class BackgroundAudioKeeper {
     static let shared = BackgroundAudioKeeper()
 
-    private var player: AVAudioPlayer?
     private(set) var isRunning = false
 
     private init() {
         // A phone call (or Siri, or another app taking exclusive audio)
-        // interrupts our session. When the interruption ends, pick the
-        // silent loop back up so the workout keeps running.
+        // interrupts our session. When the interruption ends, re-activate it so
+        // the coach keeps playing for the rest of the workout.
         NotificationCenter.default.addObserver(
             forName: AVAudioSession.interruptionNotification,
             object: AVAudioSession.sharedInstance(),
@@ -88,7 +89,6 @@ final class BackgroundAudioKeeper {
                   AVAudioSession.InterruptionType(rawValue: raw) == .ended else { return }
             try? AVAudioSession.sharedInstance().setCategory(.playback, options: [.mixWithOthers])
             try? AVAudioSession.sharedInstance().setActive(true)
-            self.player?.play()
         }
     }
 
@@ -98,22 +98,11 @@ final class BackgroundAudioKeeper {
         let session = AVAudioSession.sharedInstance()
         try? session.setCategory(.playback, options: [.mixWithOthers])
         try? session.setActive(true)
-
-        if player == nil {
-            // Near-silent, NOT silent: real devices detect pure digital silence
-            // and suspend the app despite the audio background mode. A 100 Hz
-            // tone at 0.4% amplitude (≈ -48 dB) is inaudible but keeps the
-            // audio hardware — and therefore the app — demonstrably active.
-            player = try? AVAudioPlayer(data: ToneGenerator.tone(frequency: 100, seconds: 2.0, amplitude: 0.004))
-            player?.numberOfLoops = -1
-        }
-        player?.play()
     }
 
     func stop() {
         guard isRunning else { return }
         isRunning = false
-        player?.stop()
         try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
     }
 }
